@@ -1,9 +1,9 @@
-FROM node as build-stage
-WORKDIR /app
-COPY . ./
-RUN npm install
-COPY . .
-RUN npm run build
+# FROM node as build-stage
+# WORKDIR /app
+# COPY . ./
+# RUN npm install
+# COPY . .
+# RUN npm run build
 
 FROM nginx
 COPY --from=build-stage /app/dist/ /usr/share/nginx/html
