@@ -10,8 +10,7 @@ type TransferItem = GetProp<TransferProps, 'dataSource'>[number];
 type TableRowSelection<T extends object> = TableProps<T>['rowSelection'];
 
 interface DataType {
-  key: string;
-  id: string;
+  _id: string;
   moduleName: string;
   type: number;
   actionName: string;
@@ -26,7 +25,7 @@ interface TableTransferProps extends TransferProps<TransferItem> {
 
 // Customize Table Transfer
 const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: TableTransferProps) => (
-  <Transfer {...restProps}>
+  <Transfer {...restProps} rowKey={(record) => record._id}>
     {({
       direction,
       filteredItems,
@@ -42,29 +41,34 @@ const TableTransfer = ({ leftColumns, rightColumns, ...restProps }: TableTransfe
         onSelectAll(selected, selectedRows) {
           const treeSelectedKeys = selectedRows
             .filter((item) => !item.disabled)
-            .map(({ key }) => key);
+            .map(({ _id }) => _id);
           const diffKeys = selected
             ? difference(treeSelectedKeys, listSelectedKeys)
             : difference(listSelectedKeys, treeSelectedKeys);
           onItemSelectAll(diffKeys as string[], selected);
         },
-        onSelect({ key }, selected) {
-          onItemSelect(key as string, selected);
+        onSelect({ key, _id }, selected) {
+          console.log('key: ', key);
+          console.log('_id: ', _id);
+          console.log('selected: ', selected);
+          console.log('onItemSelect: ', onItemSelect);
+          onItemSelect(_id as string, selected);
         },
         selectedRowKeys: listSelectedKeys,
       };
 
       return (
         <Table
+          rowKey={(record) => record._id}
           rowSelection={rowSelection}
           columns={columns}
           dataSource={filteredItems}
           size="small"
           style={{ pointerEvents: listDisabled ? 'none' : undefined }}
-          onRow={({ key, disabled: itemDisabled }) => ({
+          onRow={({ _id, disabled: itemDisabled }) => ({
             onClick: () => {
               if (itemDisabled || listDisabled) return;
-              onItemSelect(key as string, !listSelectedKeys.includes(key as string));
+              onItemSelect(_id as string, !listSelectedKeys.includes(_id as string));
             },
           })}
         />
@@ -124,16 +128,16 @@ export interface TableTransProps {
 const App: React.FC<TableTransProps> = (props: any) => {
   const { values } = props;
 
-  const originTargetKeys = (values?.access || []).map((item: any) => item.id)
+  const originTargetKeys = (values?.access || []).map((item: any) => item.accessId);
 
   const { data }: any = useFetch(queryAccessList)
-  const dataSource = (data || []).map((item: any) => ({ ...item, disabled: false, key: item.id }))
+  const dataSource = (data || []).map((item: any) => ({ ...item, disabled: false }))
 
   const [targetKeys, setTargetKeys] = useState<string[]>(originTargetKeys);
   const [disabled, setDisabled] = useState(false);
   const [showSearch, setShowSearch] = useState(true);
 
-  const onChange = (nextTargetKeys: string[]) => {
+  const onChange = (nextTargetKeys: any[]) => {
     setTargetKeys(nextTargetKeys);
   };
 
@@ -146,17 +150,18 @@ const App: React.FC<TableTransProps> = (props: any) => {
   };
 
   const handleOk = async () => {
-    const res: any = await doAuth({
-      roleId: values.id, 
-      accessIds: targetKeys
-    });
-    if (res.code === 200) {
-      notification.success({
-        message: '授权成功',
-        description: '烦请该用户重新登录哦！',
-      });
-      props.onSubmit()
-    }
+    console.log('targetKeys: ', targetKeys);
+    // const res: any = await doAuth({
+    //   roleId: values._id, 
+    //   accessIds: targetKeys
+    // });
+    // if (res.code === 200) {
+    //   notification.success({
+    //     message: '授权成功',
+    //     description: '烦请该用户重新登录哦！',
+    //   });
+    //   props.onSubmit()
+    // }
   };
 
   const filterOption = (inputValue: any, item: any) => {
@@ -183,7 +188,7 @@ const App: React.FC<TableTransProps> = (props: any) => {
           targetKeys={targetKeys}
           disabled={disabled}
           showSearch={showSearch}
-          // onChange={onChange}
+          onChange={onChange}
           filterOption={filterOption}
           leftColumns={leftTableColumns}
           rightColumns={rightTableColumns}

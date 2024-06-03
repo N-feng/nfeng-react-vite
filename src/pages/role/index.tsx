@@ -42,10 +42,10 @@ const handleUpdate = async (fields: API.RoleInfo) =>
  */
 const handleRemove = (params: any) => 
 new Promise<any>((resolve, reject) => {
-setTimeout(() => {
-  resolve(true);
-}, 2000);
-// reject('error');
+  setTimeout(() => {
+    resolve(true);
+  }, 2000);
+  // reject('error');
 });
 
 const RolePage = () => {
@@ -61,7 +61,7 @@ const RolePage = () => {
   const columns: ProColumns<API.UserInfo>[] = [
     {
       title: '角色id',
-      dataIndex: 'id',
+      dataIndex: '_id',
       tooltip: 'id是唯一的 key',
       hideInForm: true,
       search: false,
@@ -143,7 +143,7 @@ const RolePage = () => {
       <ProTable<API.UserInfo>
         headerTitle="查询表格"
         actionRef={actionRef}
-        rowKey="id"
+        rowKey="_id"
         search={{
           labelWidth: 120,
         }}
